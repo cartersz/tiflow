@@ -11,18 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package scheduler
+package basic
 
 import (
 	"testing"
 
 	"github.com/pingcap/tiflow/cdc/model"
+	"github.com/pingcap/tiflow/cdc/scheduler"
 	"github.com/pingcap/tiflow/cdc/scheduler/util"
 	"github.com/stretchr/testify/require"
 )
 
 // Asserts that BaseSchedulerDispatcher implements InfoProvider interface.
-var _ InfoProvider = (*BaseScheduleDispatcher)(nil)
+var _ scheduler.InfoProvider = (*BaseScheduleDispatcher)(nil)
 
 func injectSchedulerStateForInfoProviderTest(dispatcher *BaseScheduleDispatcher) {
 	dispatcher.captureStatus = map[model.CaptureID]*captureStatus{

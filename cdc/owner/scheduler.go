@@ -20,6 +20,7 @@ import (
 	"github.com/pingcap/log"
 	"github.com/pingcap/tiflow/cdc/model"
 	pscheduler "github.com/pingcap/tiflow/cdc/scheduler"
+	"github.com/pingcap/tiflow/cdc/scheduler/basic"
 	"github.com/pingcap/tiflow/pkg/config"
 	"github.com/pingcap/tiflow/pkg/context"
 	cerror "github.com/pingcap/tiflow/pkg/errors"
@@ -55,7 +56,7 @@ type scheduler interface {
 }
 
 type schedulerV2 struct {
-	*pscheduler.BaseScheduleDispatcher
+	*basic.BaseScheduleDispatcher
 
 	messageServer *p2p.MessageServer
 	messageRouter p2p.MessageRouter
@@ -80,7 +81,7 @@ func NewSchedulerV2(
 		messageRouter: messageRouter,
 		stats:         &schedulerStats{},
 	}
-	ret.BaseScheduleDispatcher = pscheduler.NewBaseScheduleDispatcher(changeFeedID, ret, checkpointTs)
+	ret.BaseScheduleDispatcher = basic.NewBaseScheduleDispatcher(changeFeedID, ret, checkpointTs)
 	if err := ret.registerPeerMessageHandlers(ctx); err != nil {
 		return nil, err
 	}

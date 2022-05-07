@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const defaultEpoch = "default-epoch"
+
 // read only
 var agentConfigForTesting = &BaseAgentConfig{SendCheckpointTsInterval: 0}
 
