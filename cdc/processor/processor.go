@@ -32,6 +32,8 @@ import (
 	tablepipeline "github.com/pingcap/tiflow/cdc/processor/pipeline"
 	"github.com/pingcap/tiflow/cdc/puller"
 	"github.com/pingcap/tiflow/cdc/redo"
+	"github.com/pingcap/tiflow/cdc/scheduler"
+	"github.com/pingcap/tiflow/cdc/scheduler/basic"
 	"github.com/pingcap/tiflow/cdc/sink"
 	"github.com/pingcap/tiflow/cdc/sink/metrics"
 	"github.com/pingcap/tiflow/cdc/sorter/memory"
@@ -80,11 +82,11 @@ type processor struct {
 
 	lazyInit            func(ctx cdcContext.Context) error
 	createTablePipeline func(ctx cdcContext.Context, tableID model.TableID, replicaInfo *model.TableReplicaInfo) (tablepipeline.TablePipeline, error)
-	newAgent            func(ctx cdcContext.Context) (processorAgent, error)
+	newAgent            func(ctx cdcContext.Context) (scheduler.ProcessorAgent, error)
 
 	// fields for integration with Scheduler(V2).
 	newSchedulerEnabled bool
-	agent               processorAgent
+	agent               scheduler.ProcessorAgent
 	checkpointTs        model.Ts
 	resolvedTs          model.Ts
 
@@ -537,10 +539,10 @@ func (p *processor) lazyInitImpl(ctx cdcContext.Context) error {
 	return nil
 }
 
-func (p *processor) newAgentImpl(ctx cdcContext.Context) (processorAgent, error) {
+func (p *processor) newAgentImpl(ctx cdcContext.Context) (scheduler.ProcessorAgent, error) {
 	messageServer := ctx.GlobalVars().MessageServer
 	messageRouter := ctx.GlobalVars().MessageRouter
-	ret, err := newAgent(ctx, messageServer, messageRouter, p, p.changefeedID)
+	ret, err := basic.NewAgent(ctx, messageServer, messageRouter, p, p.changefeedID)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}

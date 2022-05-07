@@ -21,6 +21,7 @@ import (
 	"github.com/pingcap/tiflow/cdc/model"
 	pscheduler "github.com/pingcap/tiflow/cdc/scheduler"
 	"github.com/pingcap/tiflow/cdc/scheduler/basic"
+	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
 	"github.com/pingcap/tiflow/pkg/config"
 	"github.com/pingcap/tiflow/pkg/context"
 	cerror "github.com/pingcap/tiflow/pkg/errors"
@@ -128,10 +129,10 @@ func (s *schedulerV2) DispatchTable(
 	tableID model.TableID,
 	captureID model.CaptureID,
 	isDelete bool,
-	epoch model.ProcessorEpoch,
+	epoch protocol.ProcessorEpoch,
 ) (done bool, err error) {
-	topic := model.DispatchTableTopic(changeFeedID)
-	message := &model.DispatchTableMessage{
+	topic := protocol.DispatchTableTopic(changeFeedID)
+	message := &protocol.DispatchTableMessage{
 		OwnerRev: ctx.GlobalVars().OwnerRevision,
 		ID:       tableID,
 		IsDelete: isDelete,
@@ -171,8 +172,8 @@ func (s *schedulerV2) Announce(
 	changeFeedID model.ChangeFeedID,
 	captureID model.CaptureID,
 ) (done bool, err error) {
-	topic := model.AnnounceTopic(changeFeedID)
-	message := &model.AnnounceMessage{
+	topic := protocol.AnnounceTopic(changeFeedID)
+	message := &protocol.AnnounceMessage{
 		OwnerRev:     ctx.GlobalVars().OwnerRevision,
 		OwnerVersion: version.ReleaseSemver(),
 	}
@@ -264,10 +265,10 @@ func (s *schedulerV2) registerPeerMessageHandlers(ctx context.Context) (ret erro
 
 	errCh, err := s.messageServer.SyncAddHandler(
 		ctx,
-		model.DispatchTableResponseTopic(s.changeFeedID),
-		&model.DispatchTableResponseMessage{},
+		protocol.DispatchTableResponseTopic(s.changeFeedID),
+		&protocol.DispatchTableResponseMessage{},
 		func(sender string, messageI interface{}) error {
-			message := messageI.(*model.DispatchTableResponseMessage)
+			message := messageI.(*protocol.DispatchTableResponseMessage)
 			s.stats.RecordDispatchResponse()
 			s.OnAgentFinishedTableOperation(sender, message.ID, message.Epoch)
 			return nil
@@ -279,10 +280,10 @@ func (s *schedulerV2) registerPeerMessageHandlers(ctx context.Context) (ret erro
 
 	errCh, err = s.messageServer.SyncAddHandler(
 		ctx,
-		model.SyncTopic(s.changeFeedID),
-		&model.SyncMessage{},
+		protocol.SyncTopic(s.changeFeedID),
+		&protocol.SyncMessage{},
 		func(sender string, messageI interface{}) error {
-			message := messageI.(*model.SyncMessage)
+			message := messageI.(*protocol.SyncMessage)
 			s.stats.RecordSync()
 			s.OnAgentSyncTaskStatuses(
 				sender,
@@ -299,10 +300,10 @@ func (s *schedulerV2) registerPeerMessageHandlers(ctx context.Context) (ret erro
 
 	errCh, err = s.messageServer.SyncAddHandler(
 		ctx,
-		model.CheckpointTopic(s.changeFeedID),
-		&model.CheckpointMessage{},
+		protocol.CheckpointTopic(s.changeFeedID),
+		&protocol.CheckpointMessage{},
 		func(sender string, messageI interface{}) error {
-			message := messageI.(*model.CheckpointMessage)
+			message := messageI.(*protocol.CheckpointMessage)
 			s.stats.RecordCheckpoint()
 			s.OnAgentCheckpoint(sender, message.CheckpointTs, message.ResolvedTs)
 			return nil
@@ -318,21 +319,21 @@ func (s *schedulerV2) registerPeerMessageHandlers(ctx context.Context) (ret erro
 func (s *schedulerV2) deregisterPeerMessageHandlers(ctx context.Context) {
 	err := s.messageServer.SyncRemoveHandler(
 		ctx,
-		model.DispatchTableResponseTopic(s.changeFeedID))
+		protocol.DispatchTableResponseTopic(s.changeFeedID))
 	if err != nil {
 		log.Error("failed to remove peer message handler", zap.Error(err))
 	}
 
 	err = s.messageServer.SyncRemoveHandler(
 		ctx,
-		model.SyncTopic(s.changeFeedID))
+		protocol.SyncTopic(s.changeFeedID))
 	if err != nil {
 		log.Error("failed to remove peer message handler", zap.Error(err))
 	}
 
 	err = s.messageServer.SyncRemoveHandler(
 		ctx,
-		model.CheckpointTopic(s.changeFeedID))
+		protocol.CheckpointTopic(s.changeFeedID))
 	if err != nil {
 		log.Error("failed to remove peer message handler", zap.Error(err))
 	}

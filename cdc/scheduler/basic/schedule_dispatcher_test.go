@@ -20,6 +20,7 @@ import (
 	"github.com/pingcap/log"
 	"github.com/pingcap/tiflow/cdc/model"
 	"github.com/pingcap/tiflow/cdc/scheduler"
+	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
 	"github.com/pingcap/tiflow/cdc/scheduler/util"
 	cdcContext "github.com/pingcap/tiflow/pkg/context"
 	"github.com/stretchr/testify/mock"
@@ -62,7 +63,7 @@ func (m *mockScheduleDispatcherCommunicator) DispatchTable(
 	tableID model.TableID,
 	captureID model.CaptureID,
 	isDelete bool,
-	epoch model.ProcessorEpoch,
+	epoch protocol.ProcessorEpoch,
 ) (done bool, err error) {
 	if !m.isBenchmark {
 		log.Info("dispatch table called",

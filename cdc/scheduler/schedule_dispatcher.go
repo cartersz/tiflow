@@ -15,6 +15,7 @@ package scheduler
 
 import (
 	"github.com/pingcap/tiflow/cdc/model"
+	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
 	"github.com/pingcap/tiflow/pkg/context"
 )
 
@@ -58,7 +59,7 @@ type ScheduleDispatcherCommunicator interface {
 		tableID model.TableID,
 		captureID model.CaptureID,
 		isDelete bool,
-		epoch model.ProcessorEpoch,
+		epoch protocol.ProcessorEpoch,
 	) (done bool, err error)
 
 	// Announce announces to the specified capture that the current node has become the Owner.

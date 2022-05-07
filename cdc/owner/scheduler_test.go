@@ -23,6 +23,7 @@ import (
 	"github.com/pingcap/log"
 	"github.com/pingcap/tiflow/cdc/model"
 	pscheduler "github.com/pingcap/tiflow/cdc/scheduler"
+	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
 	cdcContext "github.com/pingcap/tiflow/pkg/context"
 	"github.com/pingcap/tiflow/pkg/orchestrator"
 	"github.com/pingcap/tiflow/pkg/p2p"
@@ -90,15 +91,15 @@ func TestSchedulerBasics(t *testing.T) {
 		t,
 		mockOwnerNode.ID,
 		mockCluster,
-		model.AnnounceTopic(model.DefaultChangeFeedID("cf-1")),
-		&model.AnnounceMessage{})
+		protocol.AnnounceTopic(model.DefaultChangeFeedID("cf-1")),
+		&protocol.AnnounceMessage{})
 	dispatchCh := receiveToChannels(
 		ctx,
 		t,
 		mockOwnerNode.ID,
 		mockCluster,
-		model.DispatchTableTopic(model.DefaultChangeFeedID("cf-1")),
-		&model.DispatchTableMessage{})
+		protocol.DispatchTableTopic(model.DefaultChangeFeedID("cf-1")),
+		&protocol.DispatchTableMessage{})
 
 	for id, ch := range announceCh {
 		var msg interface{}
@@ -108,16 +109,16 @@ func TestSchedulerBasics(t *testing.T) {
 		case msg = <-ch:
 		}
 
-		require.IsType(t, &model.AnnounceMessage{}, msg)
-		require.Equal(t, &model.AnnounceMessage{
+		require.IsType(t, &protocol.AnnounceMessage{}, msg)
+		require.Equal(t, &protocol.AnnounceMessage{
 			OwnerRev:     1,
 			OwnerVersion: version.ReleaseSemver(),
 		}, msg)
 
 		_, err := mockCluster.Nodes[id].Router.GetClient(mockOwnerNode.ID).SendMessage(
 			ctx,
-			model.SyncTopic(model.DefaultChangeFeedID("cf-1")),
-			&model.SyncMessage{
+			protocol.SyncTopic(model.DefaultChangeFeedID("cf-1")),
+			&protocol.SyncMessage{
 				ProcessorVersion: version.ReleaseSemver(),
 			})
 		require.NoError(t, err)
@@ -149,16 +150,16 @@ func TestSchedulerBasics(t *testing.T) {
 		case msg = <-ch:
 		}
 
-		require.IsType(t, &model.DispatchTableMessage{}, msg)
-		dispatchTableMessage := msg.(*model.DispatchTableMessage)
+		require.IsType(t, &protocol.DispatchTableMessage{}, msg)
+		dispatchTableMessage := msg.(*protocol.DispatchTableMessage)
 		require.Equal(t, int64(1), dispatchTableMessage.OwnerRev)
 		require.False(t, dispatchTableMessage.IsDelete)
 		require.Contains(t, []model.TableID{1, 2, 3}, dispatchTableMessage.ID)
 
 		_, err := mockCluster.Nodes[id].Router.GetClient(mockOwnerNode.ID).SendMessage(
 			ctx,
-			model.DispatchTableResponseTopic(model.DefaultChangeFeedID("cf-1")),
-			&model.DispatchTableResponseMessage{
+			protocol.DispatchTableResponseTopic(model.DefaultChangeFeedID("cf-1")),
+			&protocol.DispatchTableResponseMessage{
 				ID: dispatchTableMessage.ID,
 			})
 		require.NoError(t, err)
@@ -181,9 +182,9 @@ func TestSchedulerBasics(t *testing.T) {
 
 	for _, node := range mockCluster.Nodes {
 		_, err := node.Router.GetClient(mockOwnerNode.ID).
-			SendMessage(ctx, model.CheckpointTopic(
+			SendMessage(ctx, protocol.CheckpointTopic(
 				model.DefaultChangeFeedID("cf-1")),
-				&model.CheckpointMessage{
+				&protocol.CheckpointMessage{
 					CheckpointTs: 2000,
 					ResolvedTs:   2000,
 				})

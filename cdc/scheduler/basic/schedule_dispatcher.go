@@ -21,6 +21,7 @@ import (
 	"github.com/pingcap/log"
 	"github.com/pingcap/tiflow/cdc/model"
 	"github.com/pingcap/tiflow/cdc/scheduler"
+	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
 	"github.com/pingcap/tiflow/cdc/scheduler/util"
 	"github.com/pingcap/tiflow/pkg/context"
 	"go.uber.org/zap"
@@ -85,7 +86,7 @@ type captureStatus struct {
 
 	// Epoch is reset when the processor's internal states
 	// have been reset.
-	Epoch model.ProcessorEpoch
+	Epoch protocol.ProcessorEpoch
 
 	// Watermark fields
 	CheckpointTs model.Ts
@@ -487,7 +488,7 @@ func (s *BaseScheduleDispatcher) rebalance(ctx context.Context) (done bool, err 
 func (s *BaseScheduleDispatcher) OnAgentFinishedTableOperation(
 	captureID model.CaptureID,
 	tableID model.TableID,
-	epoch model.ProcessorEpoch,
+	epoch protocol.ProcessorEpoch,
 ) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -543,7 +544,7 @@ func (s *BaseScheduleDispatcher) OnAgentFinishedTableOperation(
 // OnAgentSyncTaskStatuses is called when the processor sends its complete current state.
 func (s *BaseScheduleDispatcher) OnAgentSyncTaskStatuses(
 	captureID model.CaptureID,
-	epoch model.ProcessorEpoch,
+	epoch protocol.ProcessorEpoch,
 	running, adding, removing []model.TableID,
 ) {
 	s.mu.Lock()
