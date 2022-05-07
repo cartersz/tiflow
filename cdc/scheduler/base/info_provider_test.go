@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package basic
+package base
 
 import (
 	"testing"
@@ -23,9 +23,9 @@ import (
 )
 
 // Asserts that BaseSchedulerDispatcher implements InfoProvider interface.
-var _ scheduler.InfoProvider = (*BaseScheduleDispatcher)(nil)
+var _ scheduler.InfoProvider = (*ScheduleDispatcher)(nil)
 
-func injectSchedulerStateForInfoProviderTest(dispatcher *BaseScheduleDispatcher) {
+func injectSchedulerStateForInfoProviderTest(dispatcher *ScheduleDispatcher) {
 	dispatcher.captureStatus = map[model.CaptureID]*captureStatus{
 		"capture-1": {
 			SyncStatus:   captureSyncFinished,

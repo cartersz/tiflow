@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package basic
+package base
 
 import (
 	stdContext "context"
@@ -28,7 +28,7 @@ import (
 
 	"github.com/pingcap/tiflow/cdc/model"
 	"github.com/pingcap/tiflow/cdc/scheduler"
-	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
+	"github.com/pingcap/tiflow/cdc/scheduler/base/protocol"
 	"github.com/pingcap/tiflow/pkg/config"
 	"github.com/pingcap/tiflow/pkg/context"
 	cerror "github.com/pingcap/tiflow/pkg/errors"
@@ -45,7 +45,7 @@ const (
 )
 
 type agentImpl struct {
-	*BaseAgent
+	*Agent
 
 	messageServer *p2p.MessageServer
 	messageRouter p2p.MessageRouter
@@ -94,11 +94,11 @@ func NewAgent(
 		zap.String("changefeed", changeFeedID.ID),
 		zap.Duration("sendCheckpointTsInterval", flushInterval))
 
-	ret.BaseAgent = NewBaseAgent(
+	ret.Agent = NewBaseAgent(
 		changeFeedID,
 		executor,
 		ret,
-		&BaseAgentConfig{SendCheckpointTsInterval: flushInterval})
+		&AgentConfig{SendCheckpointTsInterval: flushInterval})
 
 	// Note that registerPeerMessageHandlers sets handlerErrChs.
 	if err := ret.registerPeerMessageHandlers(); err != nil {
@@ -173,7 +173,7 @@ func (a *agentImpl) Tick(ctx context.Context) error {
 		}
 	}
 
-	if err := a.BaseAgent.Tick(ctx); err != nil {
+	if err := a.Agent.Tick(ctx); err != nil {
 		return errors.Trace(err)
 	}
 	return nil

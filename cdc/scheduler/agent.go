@@ -15,7 +15,7 @@ package scheduler
 
 import (
 	"github.com/pingcap/tiflow/cdc/model"
-	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
+	"github.com/pingcap/tiflow/cdc/scheduler/base/protocol"
 	"github.com/pingcap/tiflow/pkg/context"
 )
 
@@ -77,17 +77,25 @@ type TableExecutor interface {
 // by the owner.
 type ProcessorMessenger interface {
 	// FinishTableOperation notifies the owner that a table operation has finished.
-	FinishTableOperation(ctx context.Context, tableID model.TableID, epoch protocol.ProcessorEpoch) (done bool, err error)
+	FinishTableOperation(
+		ctx context.Context, tableID model.TableID, epoch protocol.ProcessorEpoch,
+	) (done bool, err error)
 	// SyncTaskStatuses informs the owner of the processor's current internal state.
-	SyncTaskStatuses(ctx context.Context, epoch protocol.ProcessorEpoch, adding, removing, running []model.TableID) (done bool, err error)
-	// SendCheckpoint sends the owner the processor's local watermarks, i.e., checkpoint-ts and resolved-ts.
-	SendCheckpoint(ctx context.Context, checkpointTs model.Ts, resolvedTs model.Ts) (done bool, err error)
+	SyncTaskStatuses(
+		ctx context.Context, epoch protocol.ProcessorEpoch,
+		adding, removing, running []model.TableID,
+	) (done bool, err error)
+	// SendCheckpoint sends the owner the processor's local watermarks,
+	// i.e., checkpoint-ts and resolved-ts.
+	SendCheckpoint(
+		ctx context.Context, checkpointTs model.Ts, resolvedTs model.Ts,
+	) (done bool, err error)
 	// Barrier returns whether there is a pending message not yet acknowledged by the owner.
 	Barrier(ctx context.Context) (done bool)
 	// OnOwnerChanged is called when the owner is changed.
-	OnOwnerChanged(ctx context.Context,
-		newOwnerCaptureID model.CaptureID,
-		newOwnerRevision int64)
+	OnOwnerChanged(
+		ctx context.Context, newOwnerCaptureID model.CaptureID, newOwnerRevision int64,
+	)
 	// Close closes the messenger and does the necessary cleanup.
 	Close() error
 }

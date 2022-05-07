@@ -11,20 +11,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package basic
+package base
 
 import (
 	"testing"
 
 	"github.com/pingcap/tiflow/cdc/model"
-	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
+	"github.com/pingcap/tiflow/cdc/scheduler/base/protocol"
 	cdcContext "github.com/pingcap/tiflow/pkg/context"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 // read only
-var agentConfigForTesting = &BaseAgentConfig{SendCheckpointTsInterval: 0}
+var agentConfigForTesting = &AgentConfig{SendCheckpointTsInterval: 0}
 
 func TestAgentAddTable(t *testing.T) {
 	ctx := cdcContext.NewBackendContext4Test(false)

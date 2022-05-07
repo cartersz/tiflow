@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package basic
+package base
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ import (
 	"github.com/pingcap/log"
 	"github.com/pingcap/tiflow/cdc/model"
 	"github.com/pingcap/tiflow/cdc/scheduler"
-	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
+	"github.com/pingcap/tiflow/cdc/scheduler/base/protocol"
 	"github.com/pingcap/tiflow/cdc/scheduler/util"
 	cdcContext "github.com/pingcap/tiflow/pkg/context"
 	"github.com/stretchr/testify/mock"

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package basic
+package base
 
 import (
 	"github.com/pingcap/tiflow/cdc/model"
@@ -22,7 +22,7 @@ import (
 // Complexity Note: This function has O(#tables) cost. USE WITH CARE.
 // Functions with cost O(#tables) are NOT recommended for regular metrics
 // collection.
-func (s *BaseScheduleDispatcher) GetTaskStatuses() (map[model.CaptureID]*model.TaskStatus, error) {
+func (s *ScheduleDispatcher) GetTaskStatuses() (map[model.CaptureID]*model.TaskStatus, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -68,7 +68,7 @@ func (s *BaseScheduleDispatcher) GetTaskStatuses() (map[model.CaptureID]*model.T
 
 // GetTaskPositions implements InfoProvider for BaseScheduleDispatcher.
 // Complexity Note: This function has O(#captures) cost.
-func (s *BaseScheduleDispatcher) GetTaskPositions() (map[model.CaptureID]*model.TaskPosition, error) {
+func (s *ScheduleDispatcher) GetTaskPositions() (map[model.CaptureID]*model.TaskPosition, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -85,7 +85,7 @@ func (s *BaseScheduleDispatcher) GetTaskPositions() (map[model.CaptureID]*model.
 
 // GetTotalTableCounts implements InfoProvider for BaseScheduleDispatcher.
 // Complexity Note: This function has O(#captures) cost.
-func (s *BaseScheduleDispatcher) GetTotalTableCounts() map[model.CaptureID]int {
+func (s *ScheduleDispatcher) GetTotalTableCounts() map[model.CaptureID]int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -98,7 +98,7 @@ func (s *BaseScheduleDispatcher) GetTotalTableCounts() map[model.CaptureID]int {
 
 // GetPendingTableCounts implements InfoProvider for BaseScheduleDispatcher.
 // Complexity Note: This function has O(#captures) cost.
-func (s *BaseScheduleDispatcher) GetPendingTableCounts() map[model.CaptureID]int {
+func (s *ScheduleDispatcher) GetPendingTableCounts() map[model.CaptureID]int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

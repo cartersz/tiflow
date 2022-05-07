@@ -15,7 +15,7 @@ package scheduler
 
 import (
 	"github.com/pingcap/tiflow/cdc/model"
-	"github.com/pingcap/tiflow/cdc/scheduler/basic/protocol"
+	"github.com/pingcap/tiflow/cdc/scheduler/base/protocol"
 	"github.com/pingcap/tiflow/pkg/context"
 )
 
