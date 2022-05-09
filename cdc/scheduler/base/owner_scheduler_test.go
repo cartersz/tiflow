@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package owner
+package base
 
 import (
 	"context"
@@ -25,7 +25,6 @@ import (
 	pscheduler "github.com/pingcap/tiflow/cdc/scheduler"
 	"github.com/pingcap/tiflow/cdc/scheduler/base/protocol"
 	cdcContext "github.com/pingcap/tiflow/pkg/context"
-	"github.com/pingcap/tiflow/pkg/orchestrator"
 	"github.com/pingcap/tiflow/pkg/p2p"
 	"github.com/pingcap/tiflow/pkg/version"
 	"github.com/stretchr/testify/require"
@@ -74,13 +73,8 @@ func TestSchedulerBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	for atomic.LoadInt64(&sched.stats.AnnounceSentCount) < numNodes {
-		checkpointTs, resolvedTs, err := sched.Tick(ctx, &orchestrator.ChangefeedReactorState{
-			ID: model.DefaultChangeFeedID("cf-1"),
-			Status: &model.ChangeFeedStatus{
-				ResolvedTs:   1000,
-				CheckpointTs: 1000,
-			},
-		}, []model.TableID{1, 2, 3}, mockCaptures)
+		checkpointTs, resolvedTs, err := sched.Tick(
+			ctx, 1000, []model.TableID{1, 2, 3}, mockCaptures)
 		require.NoError(t, err)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, checkpointTs)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, resolvedTs)
@@ -129,13 +123,8 @@ func TestSchedulerBasics(t *testing.T) {
 	}, 5*time.Second, 100*time.Millisecond)
 
 	for atomic.LoadInt64(&sched.stats.DispatchSentCount) < numNodes {
-		checkpointTs, resolvedTs, err := sched.Tick(ctx, &orchestrator.ChangefeedReactorState{
-			ID: model.DefaultChangeFeedID("cf-1"),
-			Status: &model.ChangeFeedStatus{
-				ResolvedTs:   1000,
-				CheckpointTs: 1000,
-			},
-		}, []model.TableID{1, 2, 3}, mockCaptures)
+		checkpointTs, resolvedTs, err := sched.Tick(
+			ctx, 1000, []model.TableID{1, 2, 3}, mockCaptures)
 		require.NoError(t, err)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, checkpointTs)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, resolvedTs)
@@ -169,13 +158,8 @@ func TestSchedulerBasics(t *testing.T) {
 		return atomic.LoadInt64(&sched.stats.DispatchResponseReceiveCount) == 3
 	}, 5*time.Second, 100*time.Millisecond)
 
-	checkpointTs, resolvedTs, err := sched.Tick(ctx, &orchestrator.ChangefeedReactorState{
-		ID: model.DefaultChangeFeedID("cf-1"),
-		Status: &model.ChangeFeedStatus{
-			ResolvedTs:   1000,
-			CheckpointTs: 1000,
-		},
-	}, []model.TableID{1, 2, 3}, mockCaptures)
+	checkpointTs, resolvedTs, err := sched.Tick(
+		ctx, 1000, []model.TableID{1, 2, 3}, mockCaptures)
 	require.NoError(t, err)
 	require.Equal(t, model.Ts(1000), checkpointTs)
 	require.Equal(t, model.Ts(1000), resolvedTs)
@@ -233,13 +217,8 @@ func TestSchedulerNoPeer(t *testing.T) {
 
 	// Ticks the scheduler 10 times. It should not panic.
 	for i := 0; i < 10; i++ {
-		checkpointTs, resolvedTs, err := sched.Tick(ctx, &orchestrator.ChangefeedReactorState{
-			ID: model.DefaultChangeFeedID("cf-1"),
-			Status: &model.ChangeFeedStatus{
-				ResolvedTs:   1000,
-				CheckpointTs: 1000,
-			},
-		}, []model.TableID{1, 2, 3}, mockCaptures)
+		checkpointTs, resolvedTs, err := sched.Tick(
+			ctx, 1000, []model.TableID{1, 2, 3}, mockCaptures)
 		require.NoError(t, err)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, checkpointTs)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, resolvedTs)
@@ -249,13 +228,8 @@ func TestSchedulerNoPeer(t *testing.T) {
 	delete(mockCaptures, "dead-capture")
 
 	for atomic.LoadInt64(&sched.stats.AnnounceSentCount) < numNodes {
-		checkpointTs, resolvedTs, err := sched.Tick(ctx, &orchestrator.ChangefeedReactorState{
-			ID: model.DefaultChangeFeedID("cf-1"),
-			Status: &model.ChangeFeedStatus{
-				ResolvedTs:   1000,
-				CheckpointTs: 1000,
-			},
-		}, []model.TableID{1, 2, 3}, mockCaptures)
+		checkpointTs, resolvedTs, err := sched.Tick(
+			ctx, 1000, []model.TableID{1, 2, 3}, mockCaptures)
 		require.NoError(t, err)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, checkpointTs)
 		require.Equal(t, pscheduler.CheckpointCannotProceed, resolvedTs)
@@ -266,7 +240,8 @@ func TestSchedulerNoPeer(t *testing.T) {
 }
 
 func TestInfoProvider(t *testing.T) {
-	sched := scheduler(new(schedulerV2))
+	var sched interface{}
+	sched = new(SchedulerV2)
 	_, ok := sched.(pscheduler.InfoProvider)
 	require.True(t, ok)
 }
