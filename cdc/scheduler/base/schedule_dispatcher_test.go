@@ -14,6 +14,7 @@
 package base
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -28,7 +29,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ scheduler.ScheduleDispatcherCommunicator = (*mockScheduleDispatcherCommunicator)(nil)
+var _ ScheduleDispatcherCommunicator = (*mockScheduleDispatcherCommunicator)(nil)
 
 const (
 	defaultEpoch = "default-epoch"
@@ -58,7 +59,7 @@ func (m *mockScheduleDispatcherCommunicator) Reset() {
 }
 
 func (m *mockScheduleDispatcherCommunicator) DispatchTable(
-	ctx cdcContext.Context,
+	ctx context.Context,
 	changeFeedID model.ChangeFeedID,
 	tableID model.TableID,
 	captureID model.CaptureID,
@@ -83,7 +84,7 @@ func (m *mockScheduleDispatcherCommunicator) DispatchTable(
 }
 
 func (m *mockScheduleDispatcherCommunicator) Announce(
-	ctx cdcContext.Context,
+	ctx context.Context,
 	changeFeedID model.ChangeFeedID,
 	captureID model.CaptureID,
 ) (done bool, err error) {

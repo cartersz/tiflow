@@ -161,14 +161,14 @@ func (s *agentTestSuite) CreateAgent(t *testing.T) (*agentImpl, error) {
 	s.tableExecutor = NewMockTableExecutor(t)
 
 	ctx := cdcContext.NewContext(s.ctx, &cdcContext.GlobalVars{
-		EtcdClient:    &cdcEtcdClient,
 		MessageServer: s.cluster.Nodes[processorCaptureID].Server,
 		MessageRouter: s.cluster.Nodes[processorCaptureID].Router,
 	})
 	s.cdcCtx = ctx
 
-	ret, err := NewAgent(ctx, messageServer, messageRouter, s.tableExecutor,
-		model.DefaultChangeFeedID("cf-1"))
+	ret, err := NewAgent(
+		ctx, messageServer, messageRouter, &cdcEtcdClient,
+		s.tableExecutor, model.DefaultChangeFeedID("cf-1"))
 	if err != nil {
 		return nil, err
 	}
