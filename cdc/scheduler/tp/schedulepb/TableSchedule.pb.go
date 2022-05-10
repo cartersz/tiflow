@@ -24,27 +24,44 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// TableState is the state of table repliction in processor.
+//
+//  ┌───────────┐   ┌──────────┐
+//  │ Preparing ├─> │ Prepared ├───────┐
+//  └───────────┘   └──────────┘       v
+//                              ┌─────────────┐
+//                              │ Replicating │
+//                              └──────┬──────┘
+//  ┌───────────┐   ┌──────────┐       │
+//  │ Stopped   │ <─┤ Stopping │ <─────┘
+//  └───────────┘   └──────────┘
 type TableState int32
 
 const (
-	TableState_Unknown  TableState = 0
-	TableState_Running  TableState = 1
-	TableState_Adding   TableState = 2
-	TableState_Removing TableState = 3
+	TableState_Unknown     TableState = 0
+	TableState_Preparing   TableState = 1
+	TableState_Prepared    TableState = 2
+	TableState_Replicating TableState = 3
+	TableState_Stopping    TableState = 4
+	TableState_Stopped     TableState = 5
 )
 
 var TableState_name = map[int32]string{
 	0: "Unknown",
-	1: "Running",
-	2: "Adding",
-	3: "Removing",
+	1: "Preparing",
+	2: "Prepared",
+	3: "Replicating",
+	4: "Stopping",
+	5: "Stopped",
 }
 
 var TableState_value = map[string]int32{
-	"Unknown":  0,
-	"Running":  1,
-	"Adding":   2,
-	"Removing": 3,
+	"Unknown":     0,
+	"Preparing":   1,
+	"Prepared":    2,
+	"Replicating": 3,
+	"Stopping":    4,
+	"Stopped":     5,
 }
 
 func (x TableState) String() string {
@@ -55,22 +72,59 @@ func (TableState) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_5b343da219629f69, []int{0}
 }
 
-type OwnerReversion struct {
-	Reversion int64 `protobuf:"varint,1,opt,name=reversion,proto3" json:"reversion,omitempty"`
+type MessageType int32
+
+const (
+	MessageType_MsgUnknown               MessageType = 0
+	MessageType_MsgCheckpoint            MessageType = 1
+	MessageType_MsgDispatchTableRequest  MessageType = 2
+	MessageType_MsgDispatchTableResponse MessageType = 3
+	MessageType_MsgAnnounce              MessageType = 4
+	MessageType_MsgSync                  MessageType = 5
+)
+
+var MessageType_name = map[int32]string{
+	0: "MsgUnknown",
+	1: "MsgCheckpoint",
+	2: "MsgDispatchTableRequest",
+	3: "MsgDispatchTableResponse",
+	4: "MsgAnnounce",
+	5: "MsgSync",
 }
 
-func (m *OwnerReversion) Reset()         { *m = OwnerReversion{} }
-func (m *OwnerReversion) String() string { return proto.CompactTextString(m) }
-func (*OwnerReversion) ProtoMessage()    {}
-func (*OwnerReversion) Descriptor() ([]byte, []int) {
+var MessageType_value = map[string]int32{
+	"MsgUnknown":               0,
+	"MsgCheckpoint":            1,
+	"MsgDispatchTableRequest":  2,
+	"MsgDispatchTableResponse": 3,
+	"MsgAnnounce":              4,
+	"MsgSync":                  5,
+}
+
+func (x MessageType) String() string {
+	return proto.EnumName(MessageType_name, int32(x))
+}
+
+func (MessageType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_5b343da219629f69, []int{1}
+}
+
+type OwnerRevision struct {
+	Revision int64 `protobuf:"varint,1,opt,name=revision,proto3" json:"revision,omitempty"`
+}
+
+func (m *OwnerRevision) Reset()         { *m = OwnerRevision{} }
+func (m *OwnerRevision) String() string { return proto.CompactTextString(m) }
+func (*OwnerRevision) ProtoMessage()    {}
+func (*OwnerRevision) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5b343da219629f69, []int{0}
 }
-func (m *OwnerReversion) XXX_Unmarshal(b []byte) error {
+func (m *OwnerRevision) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *OwnerReversion) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *OwnerRevision) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_OwnerReversion.Marshal(b, m, deterministic)
+		return xxx_messageInfo_OwnerRevision.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -80,21 +134,21 @@ func (m *OwnerReversion) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *OwnerReversion) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OwnerReversion.Merge(m, src)
+func (m *OwnerRevision) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OwnerRevision.Merge(m, src)
 }
-func (m *OwnerReversion) XXX_Size() int {
+func (m *OwnerRevision) XXX_Size() int {
 	return m.Size()
 }
-func (m *OwnerReversion) XXX_DiscardUnknown() {
-	xxx_messageInfo_OwnerReversion.DiscardUnknown(m)
+func (m *OwnerRevision) XXX_DiscardUnknown() {
+	xxx_messageInfo_OwnerRevision.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_OwnerReversion proto.InternalMessageInfo
+var xxx_messageInfo_OwnerRevision proto.InternalMessageInfo
 
-func (m *OwnerReversion) GetReversion() int64 {
+func (m *OwnerRevision) GetRevision() int64 {
 	if m != nil {
-		return m.Reversion
+		return m.Revision
 	}
 	return 0
 }
@@ -300,9 +354,9 @@ func (m *RemoveTableRequest) GetTableId() github_com_pingcap_tiflow_cdc_model.Ta
 }
 
 type DispatchTableRequest struct {
-	OwnerReversion *OwnerReversion     `protobuf:"bytes,1,opt,name=owner_reversion,json=ownerReversion,proto3" json:"owner_reversion,omitempty"`
-	AddTable       *AddTableRequest    `protobuf:"bytes,2,opt,name=add_table,json=addTable,proto3" json:"add_table,omitempty"`
-	RemoveTable    *RemoveTableRequest `protobuf:"bytes,3,opt,name=remove_table,json=removeTable,proto3" json:"remove_table,omitempty"`
+	OwnerRevision *OwnerRevision      `protobuf:"bytes,1,opt,name=owner_revision,json=ownerRevision,proto3" json:"owner_revision,omitempty"`
+	AddTable      *AddTableRequest    `protobuf:"bytes,2,opt,name=add_table,json=addTable,proto3" json:"add_table,omitempty"`
+	RemoveTable   *RemoveTableRequest `protobuf:"bytes,3,opt,name=remove_table,json=removeTable,proto3" json:"remove_table,omitempty"`
 }
 
 func (m *DispatchTableRequest) Reset()         { *m = DispatchTableRequest{} }
@@ -338,9 +392,9 @@ func (m *DispatchTableRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DispatchTableRequest proto.InternalMessageInfo
 
-func (m *DispatchTableRequest) GetOwnerReversion() *OwnerReversion {
+func (m *DispatchTableRequest) GetOwnerRevision() *OwnerRevision {
 	if m != nil {
-		return m.OwnerReversion
+		return m.OwnerRevision
 	}
 	return nil
 }
@@ -480,9 +534,9 @@ func (m *RemoveTableResponse) GetCheckpoint() *Checkpoint {
 }
 
 type DispatchTableResponse struct {
-	OwnerReversion *OwnerReversion      `protobuf:"bytes,1,opt,name=owner_reversion,json=ownerReversion,proto3" json:"owner_reversion,omitempty"`
-	AddTable       *AddTableResponse    `protobuf:"bytes,2,opt,name=add_table,json=addTable,proto3" json:"add_table,omitempty"`
-	RemoveTable    *RemoveTableResponse `protobuf:"bytes,3,opt,name=remove_table,json=removeTable,proto3" json:"remove_table,omitempty"`
+	OwnerRevision *OwnerRevision       `protobuf:"bytes,1,opt,name=owner_revision,json=ownerRevision,proto3" json:"owner_revision,omitempty"`
+	AddTable      *AddTableResponse    `protobuf:"bytes,2,opt,name=add_table,json=addTable,proto3" json:"add_table,omitempty"`
+	RemoveTable   *RemoveTableResponse `protobuf:"bytes,3,opt,name=remove_table,json=removeTable,proto3" json:"remove_table,omitempty"`
 }
 
 func (m *DispatchTableResponse) Reset()         { *m = DispatchTableResponse{} }
@@ -518,9 +572,9 @@ func (m *DispatchTableResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DispatchTableResponse proto.InternalMessageInfo
 
-func (m *DispatchTableResponse) GetOwnerReversion() *OwnerReversion {
+func (m *DispatchTableResponse) GetOwnerRevision() *OwnerRevision {
 	if m != nil {
-		return m.OwnerReversion
+		return m.OwnerRevision
 	}
 	return nil
 }
@@ -540,8 +594,8 @@ func (m *DispatchTableResponse) GetRemoveTable() *RemoveTableResponse {
 }
 
 type Announce struct {
-	OwnerReversion *OwnerReversion `protobuf:"bytes,1,opt,name=owner_reversion,json=ownerReversion,proto3" json:"owner_reversion,omitempty"`
-	OwnerVersion   string          `protobuf:"bytes,2,opt,name=owner_version,json=ownerVersion,proto3" json:"owner_version,omitempty"`
+	OwnerRevision *OwnerRevision `protobuf:"bytes,1,opt,name=owner_revision,json=ownerRevision,proto3" json:"owner_revision,omitempty"`
+	OwnerVersion  string         `protobuf:"bytes,2,opt,name=owner_version,json=ownerVersion,proto3" json:"owner_version,omitempty"`
 }
 
 func (m *Announce) Reset()         { *m = Announce{} }
@@ -577,9 +631,9 @@ func (m *Announce) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Announce proto.InternalMessageInfo
 
-func (m *Announce) GetOwnerReversion() *OwnerReversion {
+func (m *Announce) GetOwnerRevision() *OwnerRevision {
 	if m != nil {
-		return m.OwnerReversion
+		return m.OwnerRevision
 	}
 	return nil
 }
@@ -592,8 +646,9 @@ func (m *Announce) GetOwnerVersion() string {
 }
 
 type TableStatus struct {
-	TableId github_com_pingcap_tiflow_cdc_model.TableID `protobuf:"varint,1,opt,name=table_id,json=tableId,proto3,casttype=github.com/pingcap/tiflow/cdc/model.TableID" json:"table_id,omitempty"`
-	State   TableState                                  `protobuf:"varint,2,opt,name=state,proto3,enum=pingcap.tiflow.cdc.schedulepb.TableState" json:"state,omitempty"`
+	TableId    github_com_pingcap_tiflow_cdc_model.TableID `protobuf:"varint,1,opt,name=table_id,json=tableId,proto3,casttype=github.com/pingcap/tiflow/cdc/model.TableID" json:"table_id,omitempty"`
+	State      TableState                                  `protobuf:"varint,2,opt,name=state,proto3,enum=pingcap.tiflow.cdc.schedulepb.TableState" json:"state,omitempty"`
+	Checkpoint *Checkpoint                                 `protobuf:"bytes,3,opt,name=checkpoint,proto3" json:"checkpoint,omitempty"`
 }
 
 func (m *TableStatus) Reset()         { *m = TableStatus{} }
@@ -643,9 +698,17 @@ func (m *TableStatus) GetState() TableState {
 	return TableState_Unknown
 }
 
+func (m *TableStatus) GetCheckpoint() *Checkpoint {
+	if m != nil {
+		return m.Checkpoint
+	}
+	return nil
+}
+
 type Sync struct {
 	ProcessorEpoch   *ProcessorEpoch `protobuf:"bytes,1,opt,name=processor_epoch,json=processorEpoch,proto3" json:"processor_epoch,omitempty"`
 	ProcessorVersion string          `protobuf:"bytes,2,opt,name=processor_version,json=processorVersion,proto3" json:"processor_version,omitempty"`
+	Tables           []*TableStatus  `protobuf:"bytes,3,rep,name=tables,proto3" json:"tables,omitempty"`
 }
 
 func (m *Sync) Reset()         { *m = Sync{} }
@@ -695,9 +758,117 @@ func (m *Sync) GetProcessorVersion() string {
 	return ""
 }
 
+func (m *Sync) GetTables() []*TableStatus {
+	if m != nil {
+		return m.Tables
+	}
+	return nil
+}
+
+type Message struct {
+	MsgType               MessageType                                   `protobuf:"varint,1,opt,name=msg_type,json=msgType,proto3,enum=pingcap.tiflow.cdc.schedulepb.MessageType" json:"msg_type,omitempty"`
+	From                  github_com_pingcap_tiflow_cdc_model.CaptureID `protobuf:"bytes,2,opt,name=from,proto3,casttype=github.com/pingcap/tiflow/cdc/model.CaptureID" json:"from,omitempty"`
+	To                    github_com_pingcap_tiflow_cdc_model.CaptureID `protobuf:"bytes,3,opt,name=to,proto3,casttype=github.com/pingcap/tiflow/cdc/model.CaptureID" json:"to,omitempty"`
+	Checkpoint            *Checkpoint                                   `protobuf:"bytes,4,opt,name=checkpoint,proto3" json:"checkpoint,omitempty"`
+	DispatchTableRequest  *DispatchTableRequest                         `protobuf:"bytes,5,opt,name=dispatch_table_request,json=dispatchTableRequest,proto3" json:"dispatch_table_request,omitempty"`
+	DispatchTableResponse *DispatchTableResponse                        `protobuf:"bytes,6,opt,name=dispatch_table_response,json=dispatchTableResponse,proto3" json:"dispatch_table_response,omitempty"`
+	Announce              *Announce                                     `protobuf:"bytes,7,opt,name=announce,proto3" json:"announce,omitempty"`
+	Sync                  *Sync                                         `protobuf:"bytes,8,opt,name=sync,proto3" json:"sync,omitempty"`
+}
+
+func (m *Message) Reset()         { *m = Message{} }
+func (m *Message) String() string { return proto.CompactTextString(m) }
+func (*Message) ProtoMessage()    {}
+func (*Message) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5b343da219629f69, []int{12}
+}
+func (m *Message) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Message) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Message.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Message) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Message.Merge(m, src)
+}
+func (m *Message) XXX_Size() int {
+	return m.Size()
+}
+func (m *Message) XXX_DiscardUnknown() {
+	xxx_messageInfo_Message.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Message proto.InternalMessageInfo
+
+func (m *Message) GetMsgType() MessageType {
+	if m != nil {
+		return m.MsgType
+	}
+	return MessageType_MsgUnknown
+}
+
+func (m *Message) GetFrom() github_com_pingcap_tiflow_cdc_model.CaptureID {
+	if m != nil {
+		return m.From
+	}
+	return ""
+}
+
+func (m *Message) GetTo() github_com_pingcap_tiflow_cdc_model.CaptureID {
+	if m != nil {
+		return m.To
+	}
+	return ""
+}
+
+func (m *Message) GetCheckpoint() *Checkpoint {
+	if m != nil {
+		return m.Checkpoint
+	}
+	return nil
+}
+
+func (m *Message) GetDispatchTableRequest() *DispatchTableRequest {
+	if m != nil {
+		return m.DispatchTableRequest
+	}
+	return nil
+}
+
+func (m *Message) GetDispatchTableResponse() *DispatchTableResponse {
+	if m != nil {
+		return m.DispatchTableResponse
+	}
+	return nil
+}
+
+func (m *Message) GetAnnounce() *Announce {
+	if m != nil {
+		return m.Announce
+	}
+	return nil
+}
+
+func (m *Message) GetSync() *Sync {
+	if m != nil {
+		return m.Sync
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterEnum("pingcap.tiflow.cdc.schedulepb.TableState", TableState_name, TableState_value)
-	proto.RegisterType((*OwnerReversion)(nil), "pingcap.tiflow.cdc.schedulepb.OwnerReversion")
+	proto.RegisterEnum("pingcap.tiflow.cdc.schedulepb.MessageType", MessageType_name, MessageType_value)
+	proto.RegisterType((*OwnerRevision)(nil), "pingcap.tiflow.cdc.schedulepb.OwnerRevision")
 	proto.RegisterType((*ProcessorEpoch)(nil), "pingcap.tiflow.cdc.schedulepb.ProcessorEpoch")
 	proto.RegisterType((*Checkpoint)(nil), "pingcap.tiflow.cdc.schedulepb.Checkpoint")
 	proto.RegisterType((*AddTableRequest)(nil), "pingcap.tiflow.cdc.schedulepb.AddTableRequest")
@@ -709,58 +880,76 @@ func init() {
 	proto.RegisterType((*Announce)(nil), "pingcap.tiflow.cdc.schedulepb.Announce")
 	proto.RegisterType((*TableStatus)(nil), "pingcap.tiflow.cdc.schedulepb.TableStatus")
 	proto.RegisterType((*Sync)(nil), "pingcap.tiflow.cdc.schedulepb.Sync")
+	proto.RegisterType((*Message)(nil), "pingcap.tiflow.cdc.schedulepb.Message")
 }
 
 func init() { proto.RegisterFile("TableSchedule.proto", fileDescriptor_5b343da219629f69) }
 
 var fileDescriptor_5b343da219629f69 = []byte{
-	// 677 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x96, 0x4f, 0x4f, 0x13, 0x41,
-	0x18, 0xc6, 0x3b, 0xe5, 0x5f, 0x79, 0xb7, 0x94, 0x3a, 0xa0, 0x21, 0x46, 0x0b, 0xae, 0x86, 0x20,
-	0xc4, 0xdd, 0x58, 0x3f, 0x80, 0x82, 0x78, 0x40, 0x4c, 0x30, 0x43, 0xe1, 0xe0, 0xa5, 0x6e, 0x67,
-	0xc6, 0x76, 0xa5, 0xcc, 0xac, 0x3b, 0x53, 0x08, 0x9f, 0xc0, 0x83, 0x17, 0x4d, 0x3c, 0xf9, 0x11,
-	0x8c, 0x1f, 0xc4, 0xc4, 0x0b, 0x47, 0x4f, 0xc4, 0x80, 0x9f, 0x82, 0x93, 0xd9, 0xd9, 0x2d, 0xcb,
-	0x82, 0xb1, 0x10, 0xed, 0xc1, 0xdb, 0xbc, 0xd3, 0x79, 0x9f, 0x79, 0xdf, 0x67, 0x7e, 0xcd, 0xbb,
-	0x30, 0x51, 0xf3, 0x1a, 0x6d, 0xbe, 0x4e, 0x5b, 0x9c, 0x75, 0xda, 0xdc, 0x09, 0x42, 0xa9, 0x25,
-	0xbe, 0x19, 0xf8, 0xa2, 0x49, 0xbd, 0xc0, 0xd1, 0xfe, 0xab, 0xb6, 0xdc, 0x75, 0x28, 0xa3, 0x8e,
-	0x4a, 0x8e, 0x04, 0x8d, 0xeb, 0x93, 0x4d, 0xd9, 0x94, 0xe6, 0xa4, 0x1b, 0xad, 0xe2, 0x24, 0xdb,
-	0x81, 0xd2, 0xda, 0xae, 0xe0, 0x21, 0xe1, 0x3b, 0x3c, 0x54, 0xbe, 0x14, 0xf8, 0x06, 0x8c, 0x86,
-	0xdd, 0x60, 0x0a, 0xcd, 0xa0, 0xb9, 0x01, 0x92, 0x6e, 0xd8, 0xb3, 0x50, 0x7a, 0x1e, 0x4a, 0xca,
-	0x95, 0x92, 0xe1, 0x93, 0x40, 0xd2, 0x16, 0x9e, 0x84, 0x21, 0x1e, 0x2d, 0xcc, 0xd9, 0x51, 0x12,
-	0x07, 0xf6, 0x67, 0x04, 0xf0, 0xb8, 0xc5, 0xe9, 0x56, 0x20, 0x7d, 0xa1, 0xf1, 0x1a, 0x8c, 0xd1,
-	0x93, 0xa8, 0xae, 0x95, 0x39, 0x3c, 0xb8, 0x34, 0x7f, 0x7c, 0x30, 0x3d, 0xdb, 0xf4, 0x75, 0xab,
-	0xd3, 0x70, 0xa8, 0xdc, 0x76, 0x93, 0x0e, 0xdc, 0xb8, 0x03, 0x97, 0x32, 0xea, 0x6e, 0x4b, 0xc6,
-	0xdb, 0x4e, 0x4d, 0x91, 0x62, 0x2a, 0x50, 0x53, 0x78, 0x15, 0xac, 0x90, 0x2b, 0xd9, 0xde, 0xe1,
-	0x2c, 0x92, 0xcb, 0x5f, 0x5a, 0x0e, 0xba, 0xe9, 0x35, 0x65, 0x7f, 0x43, 0x30, 0xbe, 0xc8, 0x98,
-	0x31, 0x95, 0xf0, 0x37, 0x1d, 0xae, 0x34, 0x7e, 0x0a, 0x05, 0x1d, 0xc5, 0x75, 0x9f, 0xc5, 0x2e,
-	0x2c, 0xb9, 0xc7, 0x07, 0xd3, 0x0b, 0x17, 0x52, 0x8f, 0xf2, 0x56, 0x96, 0xc9, 0x88, 0x11, 0x58,
-	0x61, 0xf8, 0x16, 0x14, 0x7d, 0x55, 0x57, 0x9c, 0x4a, 0xc1, 0xbc, 0x70, 0xcf, 0x54, 0x5b, 0x20,
-	0x96, 0xaf, 0xd6, 0xbb, 0x5b, 0x78, 0x05, 0x20, 0xed, 0x6f, 0x6a, 0x60, 0x06, 0xcd, 0x59, 0xd5,
-	0xbb, 0xce, 0x1f, 0x5f, 0xd4, 0x49, 0xfd, 0x25, 0xa7, 0x92, 0xed, 0x97, 0x80, 0x09, 0xdf, 0x96,
-	0x3b, 0xbc, 0x5f, 0xfd, 0xd8, 0x1f, 0xf2, 0x30, 0xb9, 0xec, 0xab, 0xc0, 0xd3, 0xb4, 0x95, 0xb9,
-	0x64, 0x13, 0xc6, 0x65, 0x44, 0x53, 0x3d, 0x4b, 0x90, 0x55, 0xbd, 0xd7, 0xa3, 0x95, 0x2c, 0x83,
-	0xa4, 0x24, 0xb3, 0x4c, 0xae, 0xc2, 0xa8, 0xc7, 0x58, 0xdd, 0xdc, 0x6f, 0xdc, 0xb3, 0xaa, 0x4e,
-	0x0f, 0xc5, 0x33, 0xef, 0x49, 0x0a, 0x5e, 0xb2, 0x81, 0x6b, 0x50, 0x0c, 0x8d, 0x3f, 0x89, 0x5e,
-	0x6c, 0xf6, 0xfd, 0x1e, 0x7a, 0xe7, 0x2d, 0x25, 0x56, 0x98, 0xee, 0xd9, 0x3f, 0x11, 0x94, 0xd3,
-	0x3b, 0x55, 0x20, 0x85, 0xe2, 0xff, 0x2f, 0x44, 0xf8, 0x1a, 0x0c, 0x87, 0xfc, 0x35, 0xa7, 0x7a,
-	0x6a, 0xd0, 0xdc, 0x93, 0x44, 0xf6, 0x17, 0x04, 0x13, 0x19, 0x2b, 0xfa, 0xd0, 0x69, 0xb6, 0x8d,
-	0xfc, 0xdf, 0xfc, 0x17, 0x3e, 0xe6, 0xe1, 0xea, 0x19, 0x52, 0x93, 0x82, 0xfb, 0x85, 0xea, 0xb3,
-	0xf3, 0xa8, 0xba, 0x17, 0x46, 0x35, 0xae, 0xed, 0x14, 0xab, 0x1b, 0xbf, 0x65, 0xb5, 0x7a, 0x19,
-	0x56, 0x13, 0xcd, 0x0c, 0xac, 0x6f, 0x11, 0x14, 0x16, 0x85, 0x90, 0x1d, 0x41, 0xfb, 0xe7, 0xc4,
-	0x6d, 0x18, 0x8b, 0x75, 0xbb, 0xaa, 0x79, 0x33, 0x20, 0x8a, 0x66, 0x73, 0x33, 0x99, 0x27, 0x9f,
-	0x10, 0x58, 0xf1, 0x30, 0xd3, 0x9e, 0xee, 0xa8, 0x7f, 0xca, 0xd1, 0x43, 0x18, 0x52, 0xda, 0xd3,
-	0xf1, 0x33, 0x94, 0x7a, 0x22, 0x74, 0x52, 0x06, 0x27, 0x71, 0x9e, 0xfd, 0x0e, 0xc1, 0xe0, 0xfa,
-	0x9e, 0xa0, 0x91, 0x45, 0x41, 0x77, 0xea, 0xd5, 0xd3, 0x69, 0xd7, 0xdb, 0xa2, 0xec, 0xac, 0x24,
-	0xa5, 0x20, 0x3b, 0x3b, 0x17, 0xe0, 0x4a, 0xaa, 0x9b, 0xb5, 0xa9, 0x7c, 0xf2, 0x43, 0x62, 0xd5,
-	0xfc, 0x23, 0x80, 0xb4, 0x44, 0x6c, 0xc1, 0xc8, 0x86, 0xd8, 0x12, 0x72, 0x57, 0x94, 0x73, 0x51,
-	0x40, 0x3a, 0x42, 0xf8, 0xa2, 0x59, 0x46, 0x18, 0x60, 0x78, 0x91, 0xb1, 0x68, 0x9d, 0xc7, 0x45,
-	0x28, 0x18, 0x18, 0xa2, 0x68, 0x60, 0xe9, 0xce, 0xd7, 0xc3, 0x0a, 0xda, 0x3f, 0xac, 0xa0, 0x1f,
-	0x87, 0x15, 0xf4, 0xfe, 0xa8, 0x92, 0xdb, 0x3f, 0xaa, 0xe4, 0xbe, 0x1f, 0x55, 0x72, 0x2f, 0x20,
-	0xad, 0xb9, 0x31, 0x6c, 0xbe, 0x0c, 0x1e, 0xfc, 0x0a, 0x00, 0x00, 0xff, 0xff, 0xa2, 0x21, 0x02,
-	0x7a, 0x65, 0x08, 0x00, 0x00,
+	// 951 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x56, 0x4f, 0x73, 0xdb, 0x44,
+	0x14, 0x8f, 0x6c, 0x27, 0x76, 0x9e, 0x6c, 0x47, 0xdd, 0xa6, 0xad, 0xa7, 0x80, 0x13, 0x54, 0xa6,
+	0x84, 0x84, 0xca, 0x53, 0x97, 0x19, 0x8e, 0x4c, 0x9c, 0xe6, 0x10, 0x8a, 0xa7, 0x9d, 0xb5, 0xdb,
+	0x03, 0x17, 0x21, 0xaf, 0xb6, 0xb2, 0xa8, 0xad, 0x15, 0xda, 0x75, 0x32, 0xbe, 0x73, 0xe1, 0xc2,
+	0xc0, 0xd7, 0x60, 0xf8, 0x20, 0xcc, 0x70, 0xa0, 0x47, 0x4e, 0x19, 0x26, 0x81, 0x2f, 0x91, 0xe1,
+	0xc0, 0x68, 0x57, 0xb1, 0xa2, 0xc4, 0x83, 0x12, 0xda, 0x1c, 0xb8, 0x69, 0xff, 0xbc, 0xdf, 0x7b,
+	0xef, 0xf7, 0x7e, 0xfb, 0x9e, 0xe0, 0x66, 0xdf, 0x19, 0x8c, 0x68, 0x8f, 0x0c, 0xa9, 0x3b, 0x19,
+	0x51, 0x2b, 0x8c, 0x98, 0x60, 0xe8, 0xbd, 0xd0, 0x0f, 0x3c, 0xe2, 0x84, 0x96, 0xf0, 0x5f, 0x8e,
+	0xd8, 0x81, 0x45, 0x5c, 0x62, 0xf1, 0xe4, 0x4a, 0x38, 0xb8, 0xbb, 0xea, 0x31, 0x8f, 0xc9, 0x9b,
+	0xad, 0xf8, 0x4b, 0x19, 0x99, 0x5b, 0x50, 0x7b, 0x7a, 0x10, 0xd0, 0x08, 0xd3, 0x7d, 0x9f, 0xfb,
+	0x2c, 0x40, 0x77, 0xa1, 0x12, 0x25, 0xdf, 0x0d, 0x6d, 0x5d, 0xdb, 0x28, 0xe2, 0xd9, 0xda, 0xbc,
+	0x0f, 0xf5, 0x67, 0x11, 0x23, 0x94, 0x73, 0x16, 0xed, 0x86, 0x8c, 0x0c, 0xd1, 0x2a, 0x2c, 0xd2,
+	0xf8, 0x43, 0x5e, 0x5d, 0xc6, 0x6a, 0x61, 0xfe, 0xa4, 0x01, 0xec, 0x0c, 0x29, 0x79, 0x15, 0x32,
+	0x3f, 0x10, 0xe8, 0x29, 0xd4, 0xc8, 0x6c, 0x65, 0x0b, 0x2e, 0x2f, 0x97, 0x3a, 0x9b, 0x27, 0x87,
+	0x6b, 0xf7, 0x3d, 0x5f, 0x0c, 0x27, 0x03, 0x8b, 0xb0, 0x71, 0x2b, 0x09, 0xbf, 0xa5, 0xc2, 0x6f,
+	0x11, 0x97, 0xb4, 0xc6, 0xcc, 0xa5, 0x23, 0xab, 0xcf, 0x71, 0x35, 0x05, 0xe8, 0x73, 0xf4, 0x04,
+	0xf4, 0x88, 0x72, 0x36, 0xda, 0xa7, 0x6e, 0x0c, 0x57, 0xb8, 0x32, 0x1c, 0x9c, 0x9a, 0xf7, 0xb9,
+	0xf9, 0xab, 0x06, 0x2b, 0xdb, 0xae, 0x2b, 0x19, 0xc5, 0xf4, 0x9b, 0x09, 0xe5, 0x02, 0x7d, 0x0e,
+	0x15, 0x11, 0xaf, 0x6d, 0xdf, 0x55, 0x24, 0x74, 0x5a, 0x27, 0x87, 0x6b, 0x5b, 0x97, 0x42, 0x8f,
+	0xed, 0xf6, 0x1e, 0xe3, 0xb2, 0x04, 0xd8, 0x73, 0xd1, 0xfb, 0x50, 0xf5, 0xb9, 0xcd, 0x29, 0x61,
+	0x81, 0xeb, 0x44, 0x53, 0x19, 0x6d, 0x05, 0xeb, 0x3e, 0xef, 0x9d, 0x6e, 0xa1, 0x3d, 0x80, 0x34,
+	0xbf, 0x46, 0x71, 0x5d, 0xdb, 0xd0, 0xdb, 0x1f, 0x59, 0xff, 0x5a, 0x4e, 0x2b, 0xe5, 0x17, 0x9f,
+	0x31, 0x36, 0xbf, 0x02, 0x84, 0xe9, 0x98, 0xed, 0xd3, 0xeb, 0xca, 0xc7, 0xfc, 0xbe, 0x00, 0xab,
+	0x8f, 0x7d, 0x1e, 0x3a, 0x82, 0x0c, 0x33, 0x4e, 0x7a, 0x50, 0x67, 0xb1, 0x94, 0xec, 0x8c, 0x7e,
+	0xf4, 0xf6, 0xc7, 0x39, 0x99, 0x64, 0xf4, 0x87, 0x6b, 0x2c, 0x23, 0xc7, 0x27, 0xb0, 0xec, 0xb8,
+	0xae, 0x2d, 0x9d, 0x4b, 0xea, 0xf4, 0xb6, 0x95, 0x83, 0x77, 0xae, 0x98, 0xb8, 0xe2, 0x24, 0x1b,
+	0xa8, 0x0f, 0xd5, 0x48, 0x92, 0x93, 0xe0, 0x29, 0xa6, 0x1f, 0xe6, 0xe0, 0x5d, 0xe4, 0x13, 0xeb,
+	0x51, 0xba, 0x67, 0xfe, 0xa9, 0x81, 0x91, 0xfa, 0xe4, 0x21, 0x0b, 0x38, 0xfd, 0xff, 0x2a, 0x08,
+	0xdd, 0x86, 0xa5, 0x88, 0x7e, 0x4d, 0x89, 0x68, 0x94, 0xa4, 0x9f, 0x64, 0x65, 0xfe, 0xac, 0xc1,
+	0xcd, 0x0c, 0x15, 0xd7, 0x90, 0x69, 0x36, 0x8d, 0xc2, 0x9b, 0x3c, 0x84, 0x1f, 0x0b, 0x70, 0xeb,
+	0x9c, 0x4c, 0x93, 0x80, 0xaf, 0x45, 0xa7, 0x5f, 0x5c, 0xd4, 0x69, 0xeb, 0xd2, 0x3a, 0x55, 0x81,
+	0x9d, 0x11, 0xea, 0xf3, 0xb9, 0x42, 0x6d, 0x5f, 0x45, 0xa8, 0x09, 0x66, 0x46, 0xa9, 0xdf, 0x6a,
+	0x50, 0xd9, 0x0e, 0x02, 0x36, 0x09, 0xc8, 0x35, 0xd1, 0x70, 0x0f, 0xd4, 0x86, 0xbd, 0x4f, 0x23,
+	0x89, 0x59, 0x90, 0x73, 0xa1, 0x2a, 0x37, 0x5f, 0xa8, 0x3d, 0xf3, 0x2f, 0x0d, 0x74, 0x35, 0xc0,
+	0x84, 0x23, 0x26, 0xfc, 0xad, 0x2a, 0xe8, 0x33, 0x58, 0xe4, 0xc2, 0x11, 0xaa, 0x06, 0xf5, 0x5c,
+	0xf1, 0xcc, 0xc2, 0xa0, 0x58, 0xd9, 0xbd, 0xcd, 0x5e, 0xfc, 0x9b, 0x06, 0xa5, 0xde, 0x34, 0x20,
+	0xe8, 0x05, 0xac, 0x84, 0xa7, 0x73, 0xd3, 0x4e, 0xe7, 0xa5, 0xde, 0x7e, 0x90, 0x03, 0x9c, 0x9d,
+	0xb6, 0xb8, 0x1e, 0x66, 0xa7, 0xef, 0x16, 0xdc, 0x48, 0x71, 0xb3, 0x8c, 0x1b, 0xb3, 0x83, 0x84,
+	0x75, 0xd4, 0x81, 0x25, 0x49, 0x12, 0x6f, 0x14, 0xd7, 0x8b, 0x1b, 0x7a, 0x7b, 0xf3, 0xb2, 0xd4,
+	0x4c, 0x38, 0x4e, 0x2c, 0xcd, 0xbf, 0x4b, 0x50, 0xee, 0x52, 0xce, 0x1d, 0x8f, 0xa2, 0x5d, 0xa8,
+	0x8c, 0xb9, 0x67, 0x8b, 0x69, 0x48, 0x65, 0x36, 0xf5, 0x5c, 0xc4, 0xc4, 0xb2, 0x3f, 0x0d, 0x29,
+	0x2e, 0x8f, 0xb9, 0x17, 0x7f, 0xa0, 0x5d, 0x28, 0xbd, 0x8c, 0xd8, 0x58, 0x85, 0xdd, 0x79, 0x78,
+	0x72, 0xb8, 0xf6, 0xe0, 0x32, 0x85, 0xdf, 0x71, 0x42, 0x31, 0x89, 0xe2, 0xd2, 0x4b, 0x73, 0xb4,
+	0x0d, 0x05, 0xc1, 0x64, 0xb9, 0xfe, 0x13, 0x48, 0x41, 0xb0, 0x73, 0x95, 0x2f, 0xbd, 0x49, 0x0f,
+	0xf5, 0xe1, 0xb6, 0x9b, 0xf4, 0x1e, 0xf5, 0x82, 0xed, 0x48, 0x4d, 0x8e, 0xc6, 0xa2, 0x84, 0x7d,
+	0x94, 0x03, 0x3b, 0x6f, 0xbe, 0xe2, 0x55, 0x77, 0xde, 0xd4, 0x1d, 0xc1, 0x9d, 0x0b, 0xae, 0xd4,
+	0xdb, 0x6f, 0x2c, 0x49, 0x5f, 0x9f, 0x5c, 0xcd, 0x57, 0xd2, 0x37, 0x6e, 0xb9, 0x73, 0x7b, 0xe7,
+	0x0e, 0x54, 0x9c, 0xa4, 0x81, 0x34, 0xca, 0x12, 0xfe, 0xc3, 0xbc, 0x2e, 0x97, 0x5c, 0xc7, 0x33,
+	0x43, 0xf4, 0x29, 0x94, 0xf8, 0x34, 0x20, 0x8d, 0x8a, 0x04, 0xb8, 0x97, 0x03, 0x10, 0xbf, 0x20,
+	0x2c, 0x0d, 0x36, 0x07, 0x00, 0xe9, 0x83, 0x45, 0x3a, 0x94, 0x9f, 0x07, 0xaf, 0x02, 0x76, 0x10,
+	0x18, 0x0b, 0xa8, 0x06, 0xcb, 0xcf, 0x22, 0x1a, 0x3a, 0x91, 0x1f, 0x78, 0x86, 0x86, 0xaa, 0x50,
+	0x51, 0x4b, 0xea, 0x1a, 0x05, 0xb4, 0x02, 0x3a, 0xa6, 0xe1, 0xc8, 0x27, 0x8e, 0x88, 0x8f, 0x8b,
+	0xf1, 0x71, 0x4f, 0xb0, 0x30, 0x76, 0x6c, 0x94, 0x62, 0x20, 0xb9, 0xa2, 0xae, 0xb1, 0xb8, 0xf9,
+	0x9d, 0x06, 0xfa, 0x19, 0xa1, 0xa2, 0x3a, 0x40, 0x97, 0x7b, 0xa9, 0xa3, 0x1b, 0x50, 0xeb, 0x72,
+	0x2f, 0xad, 0xbb, 0xa1, 0xa1, 0x77, 0xe0, 0x4e, 0x97, 0x7b, 0xf3, 0x6a, 0x66, 0x14, 0xd0, 0xbb,
+	0xd0, 0xb8, 0x78, 0xa8, 0xd8, 0x34, 0x8a, 0x71, 0x64, 0x5d, 0xee, 0x9d, 0x72, 0xa4, 0x62, 0xe9,
+	0x72, 0x2f, 0xce, 0xd9, 0x58, 0xec, 0x7c, 0xf0, 0xcb, 0x51, 0x53, 0x7b, 0x7d, 0xd4, 0xd4, 0xfe,
+	0x38, 0x6a, 0x6a, 0x3f, 0x1c, 0x37, 0x17, 0x5e, 0x1f, 0x37, 0x17, 0x7e, 0x3f, 0x6e, 0x2e, 0x7c,
+	0x09, 0x29, 0x41, 0x83, 0x25, 0xf9, 0x27, 0xff, 0xe8, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xcc,
+	0xce, 0x87, 0x50, 0x15, 0x0c, 0x00, 0x00,
 }
 
-func (m *OwnerReversion) Marshal() (dAtA []byte, err error) {
+func (m *OwnerRevision) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -770,18 +959,18 @@ func (m *OwnerReversion) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *OwnerReversion) MarshalTo(dAtA []byte) (int, error) {
+func (m *OwnerRevision) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *OwnerReversion) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *OwnerRevision) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Reversion != 0 {
-		i = encodeVarintTableSchedule(dAtA, i, uint64(m.Reversion))
+	if m.Revision != 0 {
+		i = encodeVarintTableSchedule(dAtA, i, uint64(m.Revision))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -973,9 +1162,9 @@ func (m *DispatchTableRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.OwnerReversion != nil {
+	if m.OwnerRevision != nil {
 		{
-			size, err := m.OwnerReversion.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.OwnerRevision.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1132,9 +1321,9 @@ func (m *DispatchTableResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.OwnerReversion != nil {
+	if m.OwnerRevision != nil {
 		{
-			size, err := m.OwnerReversion.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.OwnerRevision.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1174,9 +1363,9 @@ func (m *Announce) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.OwnerReversion != nil {
+	if m.OwnerRevision != nil {
 		{
-			size, err := m.OwnerReversion.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.OwnerRevision.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1209,6 +1398,18 @@ func (m *TableStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.Checkpoint != nil {
+		{
+			size, err := m.Checkpoint.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTableSchedule(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
 	if m.State != 0 {
 		i = encodeVarintTableSchedule(dAtA, i, uint64(m.State))
 		i--
@@ -1242,6 +1443,20 @@ func (m *Sync) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Tables) > 0 {
+		for iNdEx := len(m.Tables) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Tables[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTableSchedule(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
 	if len(m.ProcessorVersion) > 0 {
 		i -= len(m.ProcessorVersion)
 		copy(dAtA[i:], m.ProcessorVersion)
@@ -1264,6 +1479,108 @@ func (m *Sync) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Message) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Message) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Message) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Sync != nil {
+		{
+			size, err := m.Sync.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTableSchedule(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.Announce != nil {
+		{
+			size, err := m.Announce.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTableSchedule(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.DispatchTableResponse != nil {
+		{
+			size, err := m.DispatchTableResponse.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTableSchedule(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.DispatchTableRequest != nil {
+		{
+			size, err := m.DispatchTableRequest.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTableSchedule(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.Checkpoint != nil {
+		{
+			size, err := m.Checkpoint.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTableSchedule(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.To) > 0 {
+		i -= len(m.To)
+		copy(dAtA[i:], m.To)
+		i = encodeVarintTableSchedule(dAtA, i, uint64(len(m.To)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.From) > 0 {
+		i -= len(m.From)
+		copy(dAtA[i:], m.From)
+		i = encodeVarintTableSchedule(dAtA, i, uint64(len(m.From)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.MsgType != 0 {
+		i = encodeVarintTableSchedule(dAtA, i, uint64(m.MsgType))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTableSchedule(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTableSchedule(v)
 	base := offset
@@ -1275,14 +1592,14 @@ func encodeVarintTableSchedule(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *OwnerReversion) Size() (n int) {
+func (m *OwnerRevision) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Reversion != 0 {
-		n += 1 + sovTableSchedule(uint64(m.Reversion))
+	if m.Revision != 0 {
+		n += 1 + sovTableSchedule(uint64(m.Revision))
 	}
 	return n
 }
@@ -1352,8 +1669,8 @@ func (m *DispatchTableRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.OwnerReversion != nil {
-		l = m.OwnerReversion.Size()
+	if m.OwnerRevision != nil {
+		l = m.OwnerRevision.Size()
 		n += 1 + l + sovTableSchedule(uint64(l))
 	}
 	if m.AddTable != nil {
@@ -1411,8 +1728,8 @@ func (m *DispatchTableResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.OwnerReversion != nil {
-		l = m.OwnerReversion.Size()
+	if m.OwnerRevision != nil {
+		l = m.OwnerRevision.Size()
 		n += 1 + l + sovTableSchedule(uint64(l))
 	}
 	if m.AddTable != nil {
@@ -1432,8 +1749,8 @@ func (m *Announce) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.OwnerReversion != nil {
-		l = m.OwnerReversion.Size()
+	if m.OwnerRevision != nil {
+		l = m.OwnerRevision.Size()
 		n += 1 + l + sovTableSchedule(uint64(l))
 	}
 	l = len(m.OwnerVersion)
@@ -1455,6 +1772,10 @@ func (m *TableStatus) Size() (n int) {
 	if m.State != 0 {
 		n += 1 + sovTableSchedule(uint64(m.State))
 	}
+	if m.Checkpoint != nil {
+		l = m.Checkpoint.Size()
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
 	return n
 }
 
@@ -1472,6 +1793,52 @@ func (m *Sync) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTableSchedule(uint64(l))
 	}
+	if len(m.Tables) > 0 {
+		for _, e := range m.Tables {
+			l = e.Size()
+			n += 1 + l + sovTableSchedule(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *Message) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MsgType != 0 {
+		n += 1 + sovTableSchedule(uint64(m.MsgType))
+	}
+	l = len(m.From)
+	if l > 0 {
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
+	l = len(m.To)
+	if l > 0 {
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
+	if m.Checkpoint != nil {
+		l = m.Checkpoint.Size()
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
+	if m.DispatchTableRequest != nil {
+		l = m.DispatchTableRequest.Size()
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
+	if m.DispatchTableResponse != nil {
+		l = m.DispatchTableResponse.Size()
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
+	if m.Announce != nil {
+		l = m.Announce.Size()
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
+	if m.Sync != nil {
+		l = m.Sync.Size()
+		n += 1 + l + sovTableSchedule(uint64(l))
+	}
 	return n
 }
 
@@ -1481,7 +1848,7 @@ func sovTableSchedule(x uint64) (n int) {
 func sozTableSchedule(x uint64) (n int) {
 	return sovTableSchedule(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *OwnerReversion) Unmarshal(dAtA []byte) error {
+func (m *OwnerRevision) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1504,17 +1871,17 @@ func (m *OwnerReversion) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: OwnerReversion: wiretype end group for non-group")
+			return fmt.Errorf("proto: OwnerRevision: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: OwnerReversion: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: OwnerRevision: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Reversion", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Revision", wireType)
 			}
-			m.Reversion = 0
+			m.Revision = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTableSchedule
@@ -1524,7 +1891,7 @@ func (m *OwnerReversion) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Reversion |= int64(b&0x7F) << shift
+				m.Revision |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1945,7 +2312,7 @@ func (m *DispatchTableRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerReversion", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OwnerRevision", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1972,10 +2339,10 @@ func (m *DispatchTableRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.OwnerReversion == nil {
-				m.OwnerReversion = &OwnerReversion{}
+			if m.OwnerRevision == nil {
+				m.OwnerRevision = &OwnerRevision{}
 			}
-			if err := m.OwnerReversion.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.OwnerRevision.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2353,7 +2720,7 @@ func (m *DispatchTableResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerReversion", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OwnerRevision", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2380,10 +2747,10 @@ func (m *DispatchTableResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.OwnerReversion == nil {
-				m.OwnerReversion = &OwnerReversion{}
+			if m.OwnerRevision == nil {
+				m.OwnerRevision = &OwnerRevision{}
 			}
-			if err := m.OwnerReversion.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.OwnerRevision.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2511,7 +2878,7 @@ func (m *Announce) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerReversion", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OwnerRevision", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2538,10 +2905,10 @@ func (m *Announce) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.OwnerReversion == nil {
-				m.OwnerReversion = &OwnerReversion{}
+			if m.OwnerRevision == nil {
+				m.OwnerRevision = &OwnerRevision{}
 			}
-			if err := m.OwnerReversion.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.OwnerRevision.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2665,6 +3032,42 @@ func (m *TableStatus) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Checkpoint", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Checkpoint == nil {
+				m.Checkpoint = &Checkpoint{}
+			}
+			if err := m.Checkpoint.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTableSchedule(dAtA[iNdEx:])
@@ -2782,6 +3185,353 @@ func (m *Sync) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.ProcessorVersion = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tables", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tables = append(m.Tables, &TableStatus{})
+			if err := m.Tables[len(m.Tables)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTableSchedule(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Message) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTableSchedule
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Message: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Message: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MsgType", wireType)
+			}
+			m.MsgType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MsgType |= MessageType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.From = github_com_pingcap_tiflow_cdc_model.CaptureID(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.To = github_com_pingcap_tiflow_cdc_model.CaptureID(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Checkpoint", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Checkpoint == nil {
+				m.Checkpoint = &Checkpoint{}
+			}
+			if err := m.Checkpoint.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DispatchTableRequest", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.DispatchTableRequest == nil {
+				m.DispatchTableRequest = &DispatchTableRequest{}
+			}
+			if err := m.DispatchTableRequest.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DispatchTableResponse", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.DispatchTableResponse == nil {
+				m.DispatchTableResponse = &DispatchTableResponse{}
+			}
+			if err := m.DispatchTableResponse.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Announce", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Announce == nil {
+				m.Announce = &Announce{}
+			}
+			if err := m.Announce.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sync", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTableSchedule
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTableSchedule
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Sync == nil {
+				m.Sync = &Sync{}
+			}
+			if err := m.Sync.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
